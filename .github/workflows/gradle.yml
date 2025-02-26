@@ -45,7 +45,7 @@ jobs:
       # 압축파일 형태로 전달
       - name: Make zip file
         run: zip -r -qq -j ./springboot-intro-build.zip ./deploy
-      
+
       # S3 Bucket으로 copy
       - name: Deliver to AWS S3
         env:
@@ -56,7 +56,7 @@ jobs:
           aws s3 cp ./springboot-intro-build.zip s3://springboot-intro-build/ \
             --region ap-northeast-2 \
             --acl private
-      
+
       # Deploy
       - name: Deploy
         env:
