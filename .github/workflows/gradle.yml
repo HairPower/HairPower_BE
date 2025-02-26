@@ -49,18 +49,19 @@ jobs:
       # S3 Bucket으로 copy
       - name: Deliver to AWS S3
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID: AKIAUQ4L22I5BE4B2VHS
+          AWS_SECRET_ACCESS_KEY: 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
+
         run: |
           aws s3 cp ./springboot-intro-build.zip s3://springboot-intro-build/ \
             --region ap-northeast-2 \
             --acl private
-            
+      
       # Deploy
       - name: Deploy
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID: AKIAUQ4L22I5BE4B2VHS
+          AWS_SECRET_ACCESS_KEY: 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
         run: |
           aws deploy create-deployment \
           --application-name springboot-intro \
