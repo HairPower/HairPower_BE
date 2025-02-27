@@ -30,6 +30,12 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
         shell: bash
+      
+      - name: Upload JAR Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: my-java-app
+          path: target/*.jar
         
       - name: Make Zip File
         run: zip -qq -r ./$GITHUB_SHA.zip .
