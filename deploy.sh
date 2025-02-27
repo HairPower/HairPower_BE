@@ -4,7 +4,7 @@ REPOSITORY=/home/ubuntu/deploy
 cd $REPOSITORY
 
 APP_NAME=springboot-intro
-JAR_NAME=$(ls $REPOSITORY/build/libs/ | grep 'SNAPSHOT.jar' | tail -n 1)
+JAR_NAME=$(ls $REPOSITORY/build/libs/ | grep 'HairPower_BE-0.0.1-SNAPSHOT-plain.jar' | tail -n 1)
 JAR_PATH=$REPOSITORY/build/libs/$JAR_NAME
 
 CURRENT_PID=$(pgrep -f $APP_NAME)
