@@ -24,7 +24,7 @@ public class ChatService {
     public ChatResponseDto chatWithAI(ChatRequestDto requestDto) {
         Long userId;
         try {
-            userId = Long.parseLong(requestDto.getUserId());
+            userId = Long.parseLong(requestDto.getUser_id());
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("잘못된 userId 형식입니다.");
         }

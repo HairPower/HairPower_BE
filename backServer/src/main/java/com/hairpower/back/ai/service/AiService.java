@@ -1,10 +1,14 @@
 package com.hairpower.back.ai.service;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hairpower.back.user.model.User;
 import com.hairpower.back.user.repository.UserRepository;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -181,5 +185,62 @@ public class AiService {
             return "AI 응답을 가져오는 데 실패했습니다.";
         }
 
+    }
+    // ✅ AI 서버에서 헤어 스타일 추천 결과 가져오기
+    public ResponseEntity<AiStoryResponse> getStoryResult(Long userId) {
+        String url = AI_SERVER_URL + "/get-story-result/" + userId;
+        log.info("📡 AI 서버에서 스타일 추천 결과 요청: URL={}", url);
+
+        try {
+            AiStoryResponse response = webClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .bodyToMono(AiStoryResponse.class)
+                    .block();
+
+            log.info("📡 AI 서버 응답: {}", response);
+
+            // 응답이 null이거나 필수 필드가 없으면 204 No Content 반환
+            if (response == null || response.getContent() == null || response.getContent().getText() == null) {
+                log.warn("⚠️ AI 서버 응답이 유효하지 않음. 기본 메시지 반환.");
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+            }
+
+            return ResponseEntity.ok(response); // JSON 형식으로 그대로 반환
+
+        } catch (Exception e) {
+            log.error("❌ AI 서버에서 스타일 추천 요청 중 오류 발생: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @Getter
+    public static class AiStoryResponse {
+        @JsonProperty("description")
+        private String description;
+
+        @JsonProperty("user_id")
+        private String userId;
+
+        @JsonProperty("gender")
+        private String gender;
+
+        @JsonProperty("user_features")
+        private String userFeatures;
+
+        @JsonProperty("question")
+        private String question;
+
+        @JsonProperty("content")
+        private AiStoryContent content;
+    }
+
+    @Getter
+    private static class AiStoryContent {
+        @JsonProperty("type")
+        private String type;
+
+        @JsonProperty("text")
+        private String text;
     }
 }
