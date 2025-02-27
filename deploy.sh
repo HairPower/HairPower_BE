@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-REPOSITORY=/home/ubuntu/cicdproject
+REPOSITORY=/opt/codedeploy-agent/deployment-root/360ceed4-d76d-48aa-a43b-e2258c185bf0/d-3KR2T23IA/deployment-archive
 cd $REPOSITORY
 
 APP_NAME=springboot-intro
