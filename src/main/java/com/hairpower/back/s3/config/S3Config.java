@@ -19,7 +19,7 @@ public class S3Config {
     public S3Config() {
         // ✅ .env 파일 로드
         dotenv = Dotenv.configure().ignoreIfMissing().load();
-        logger.info("🔍 직접 확인 - Dotenv AWS_ACCESS_KEY: {}", dotenv.get("AWS_ACCESS_KEY"));
+        logger.info("🔍 직접 확인 - Dotenv AWS_ACCESS_KEY: {}", dotenv.get("AKIAUQ4L22I5OQSDABHG"));
         logger.info("🔍 직접 확인 - Dotenv AWS_REGION: {}", dotenv.get("AWS_REGION"));
     }
 
