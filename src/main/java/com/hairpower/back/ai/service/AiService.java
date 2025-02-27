@@ -28,8 +28,7 @@ public class AiService {
     private final ObjectMapper objectMapper = new ObjectMapper(); // ✅ Jackson ObjectMapper 추가
 
 
-    private static final String AI_SERVER_URL = "https://07c7-35-240-236-97.ngrok-free.app";
-
+    private static final String AI_SERVER_URL = "https://1a09-35-240-236-97.ngrok-free.app";
     // ✅ WebClient 요청 & 응답 로깅 필터 추가
     private static ExchangeFilterFunction logRequest() {
         return ExchangeFilterFunction.ofRequestProcessor(clientRequest -> {
