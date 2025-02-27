@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -30,11 +31,12 @@ public class UserController {
 
 
     // ✅ 사용자 특징 조회 API
+    // ✅ 사용자 특징 조회 API (Map<String, String> 반환하도록 수정)
     @GetMapping("/face/{userId}")
-    public ResponseEntity<List<String>> getUserFeatures(@PathVariable Long userId) {
+    public ResponseEntity<Map<String, String>> getUserFeatures(@PathVariable Long userId) {
         log.info("📡 GET /face/{} 요청 수신", userId);
 
-        List<String> userFeatures = userService.getUserFeatures(userId);
+        Map<String, String> userFeatures = userService.getUserFeatures(userId);
 
         return ResponseEntity.ok(userFeatures);
     }

@@ -11,6 +11,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -59,16 +61,25 @@ public class UserService {
         }
     }
 
-    // ✅ 사용자 특징 조회 (userFeatures 반환)
-    public List<String> getUserFeatures(Long userId) {
+    /// ✅ 사용자 특징 조회 (List<String>을 Map<String, String>으로 변환)
+    public Map<String, String> getUserFeatures(Long userId) {
         log.info("📡 사용자 특징 조회 요청: userId={}", userId);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 사용자 ID입니다."));
 
-        log.info("✅ userId={} 의 특징 조회 완료: {}", userId, user.getUserFeatures());
+        List<String> featureList = user.getUserFeatures();
 
-        return user.getUserFeatures();
+        // ✅ List<String> → Map<String, String> 변환
+        Map<String, String> featureMap = featureList.stream()
+                .map(entry -> entry.split(": ")) // "chin: 짧은 턱" → ["chin", "짧은 턱"]
+                .filter(arr -> arr.length == 2) // key-value가 정상적으로 분리된 것만 처리
+                .collect(Collectors.toMap(arr -> arr[0], arr -> arr[1]));
+
+        log.info("✅ userId={} 의 특징 조회 완료: {}", userId, featureMap);
+
+        return featureMap;
     }
+
 
 }

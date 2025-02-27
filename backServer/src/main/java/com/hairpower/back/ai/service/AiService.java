@@ -1,5 +1,6 @@
 package com.hairpower.back.ai.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hairpower.back.user.model.User;
 import com.hairpower.back.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -11,9 +12,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -21,8 +20,10 @@ import java.util.Map;
 public class AiService {
     private final WebClient webClient;
     private final UserRepository userRepository; // ✅ 유저 DB 업데이트를 위한 Repository 추가
+    private final ObjectMapper objectMapper = new ObjectMapper(); // ✅ Jackson ObjectMapper 추가
 
-    private static final String AI_SERVER_URL = "https://14d7-34-90-160-86.ngrok-free.app/";
+
+    private static final String AI_SERVER_URL = "https://86a2-35-240-236-97.ngrok-free.app/";
 
     // ✅ WebClient 요청 & 응답 로깅 필터 추가
     private static ExchangeFilterFunction logRequest() {
@@ -78,56 +79,80 @@ public class AiService {
         }
     }
 
-    // ✅ AI 서버에서 사용자 특징 가져오기 (수정됨)
+    // ✅ AI 서버에서 사용자 특징 가져오기
+    // ✅ AI 서버에서 사용자 특징 가져오기 (문제 해결)
     public void fetchUserFeaturesFromAI(String userId) {
         String url = AI_SERVER_URL + "/select-story-image/" + userId;
         log.info("📡 AI 서버에서 사용자 특징 요청: URL={}", url);
 
         try {
-            Map<String, List<String>> response = webClient.get()
+            // 1️⃣ **AI 서버 응답을 먼저 `String`으로 받음**
+            String responseStr = webClient.get()
                     .uri(url)
                     .retrieve()
-                    .bodyToMono(Map.class)
+                    .bodyToMono(String.class)
                     .block();
 
-            log.info("📡 AI 서버 응답: {}", response);
+            log.info("📡 AI 서버 응답 (원본): {}", responseStr);
 
-            // 응답에서 user_features 추출
-            List<String> userFeatures = response.getOrDefault("user_features", List.of());
+            // 2️⃣ **Jackson ObjectMapper를 사용하여 JSON 변환**
+            Map<String, Object> response = objectMapper.readValue(responseStr, LinkedHashMap.class);
 
-            if (userFeatures.isEmpty()) {
+            log.info("📡 AI 서버 응답 (파싱된 JSON): {}", response);
+
+            // 3️⃣ **유효성 검사 및 `user_features` 추출**
+            if (response == null || !response.containsKey("user_features")) {
                 log.warn("⚠️ AI 서버 응답이 비어 있음. 기본값 저장.");
                 saveDefaultUserFeatures(userId);
-            } else {
-                updateUserFeatures(userId, userFeatures);
+                return;
             }
+
+            // 4️⃣ **user_features를 `LinkedHashMap<String, String>`으로 변환 (순서 유지)**
+            LinkedHashMap<String, String> userFeatures = objectMapper.convertValue(response.get("user_features"), LinkedHashMap.class);
+
+            // 5️⃣ **DB 업데이트**
+            updateUserFeatures(userId, userFeatures);
 
         } catch (Exception e) {
             log.error("❌ AI 서버에서 사용자 특징 요청 중 오류 발생: {}", e.getMessage(), e);
-            saveDefaultUserFeatures(userId); // ✅ 오류 발생 시 기본값 저장
+            saveDefaultUserFeatures(userId);
         }
     }
 
-    // ✅ DB에 사용자 특징 업데이트
-    private void updateUserFeatures(String userId, List<String> userFeatures) {
+    // ✅ DB에 사용자 특징 업데이트 (JSON 대신 리스트로 저장)
+    private void updateUserFeatures(String userId, Map<String, String> userFeatures) {
         log.info("📡 DB에 사용자 특징 업데이트: userId={}, userFeatures={}", userId, userFeatures);
 
         Long id = Long.parseLong(userId);
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 사용자 ID입니다."));
 
-        user.setUserFeatures(userFeatures);
+        // ✅ Map을 List<String>으로 변환 (키=값 형태로 리스트에 저장)
+        List<String> featureList = userFeatures.entrySet().stream()
+                .map(entry -> entry.getKey() + ": " + entry.getValue())
+                .toList();
+
+        user.setUserFeatures(featureList);
         userRepository.save(user);
 
-        log.info("✅ userFeatures가 성공적으로 업데이트되었습니다. userId={}", userId);
+        log.info("✅ userFeatures가 리스트 형태로 성공적으로 업데이트되었습니다. userId={}", userId);
     }
 
-    // ✅ AI 서버 오류 발생 시 기본값 저장
+
+
+
+    // ✅ AI 서버 오류 발생 시 기본값 저장 (순서 유지)
     private void saveDefaultUserFeatures(String userId) {
-        List<String> defaultFeatures = Arrays.asList("세모형", "짧은 코", "긴 턱", "짧은 얼굴");
+        LinkedHashMap<String, String> defaultFeatures = new LinkedHashMap<>(); // ✅ HashMap -> LinkedHashMap으로 변경
+        defaultFeatures.put("forehead", "긴 이마");
+        defaultFeatures.put("nose", "평범한 코");
+        defaultFeatures.put("chin", "짧은 턱");
+        defaultFeatures.put("eye_mid", "평범한 미간");
+        defaultFeatures.put("vertical", "짧은 얼굴");
+        defaultFeatures.put("shape", "각진형");
 
         log.info("⚠️ AI 서버 오류로 기본 userFeatures 저장. 기본값: {}", defaultFeatures);
-        updateUserFeatures(userId, defaultFeatures);
+        updateUserFeatures(userId, defaultFeatures); // ✅ 타입이 일치하도록 변경
     }
 
     // ✅ AI 챗봇 응답 받기 (수정됨)

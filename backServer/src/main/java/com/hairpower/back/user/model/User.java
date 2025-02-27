@@ -23,8 +23,8 @@ public class User {
     private String gender;
     private String imageUrl;
 
-    // ✅ JSON 형태로 저장 (MySQL TEXT 타입 사용)
+    // ✅ JSON을 List 형태로 저장하도록 변경
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "JSON")
     private List<String> userFeatures;
 }
