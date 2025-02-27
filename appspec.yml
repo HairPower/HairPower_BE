@@ -6,7 +6,7 @@ files:
     overwrite: yes
 
 permissions:
-  - object: /home/ubuntu/cicdproject/
+  - object: /home/ubuntu//opt/codedeploy-agent/deployment-root/360ceed4-d76d-48aa-a43b-e2258c185bf0/d-3KR2T23IA/deployment-archive/build/libs
     owner: ubuntu
     group: ubuntu
 hooks:
