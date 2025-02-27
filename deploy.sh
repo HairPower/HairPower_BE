@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-REPOSITORY=/home/ubuntu/deploy
+REPOSITORY=/home/ubuntu/app/deploy
 cd $REPOSITORY
 
 APP_NAME=springboot-intro
