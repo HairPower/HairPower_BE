@@ -31,14 +31,8 @@ jobs:
         run: ./gradlew clean build
         shell: bash
 
-      - name: Upload JAR Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: my-java-app
-          path: build/libs/*.jar
-
       - name: Make Zip File
-        run: zip -qq -r ./cicd_project.zip .
+        run: zip -qq -r ./cicd_project.zip . -x "build/*" "gradle/*"
         shell: bash
 
       - name: Configure AWS credentials
