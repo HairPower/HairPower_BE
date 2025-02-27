@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.hairpower.back.AiChatApplication" tests="1" skipped="0" failures="0" errors="0" timestamp="2025-02-26T05:02:58" hostname="HyunJeangui-MacBookPro.local" time="0.338">
+<testsuite name="com.hairpower.back.AiChatApplication" tests="1" skipped="0" failures="0" errors="0" timestamp="2025-02-27T08:42:40" hostname="HyunJeangui-MacBookPro.local" time="0.354">
   <properties/>
-  <testcase name="contextLoads()" classname="com.hairpower.back.AiChatApplication" time="0.338"/>
-  <system-out><![CDATA[14:02:58.687 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.hairpower.back.AiChatApplication]: AiChatApplication does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-14:02:58.731 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.hairpower.back.AiChatApplication for test class com.hairpower.back.AiChatApplication
+  <testcase name="contextLoads()" classname="com.hairpower.back.AiChatApplication" time="0.354"/>
+  <system-out><![CDATA[Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+17:42:39.889 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.hairpower.back.AiChatApplication]: AiChatApplication does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+17:42:39.931 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.hairpower.back.AiChatApplication for test class com.hairpower.back.AiChatApplication
 
   .   ____          _            __ _ _
  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
@@ -14,9 +15,9 @@
 
  :: Spring Boot ::                (v3.4.1)
 
-2025-02-26T14:02:58.884+09:00  INFO 47123 --- [    Test worker] com.hairpower.back.AiChatApplication     : Starting AiChatApplication using Java 17.0.14 with PID 47123 (started by hyunjeanglee in /Users/hyunjeanglee/Downloads/HairPowerBackServer/Kakao_HairPower/backServer)
-2025-02-26T14:02:58.885+09:00  INFO 47123 --- [    Test worker] com.hairpower.back.AiChatApplication     : No active profile set, falling back to 1 default profile: "default"
-2025-02-26T14:02:58.939+09:00  INFO 47123 --- [    Test worker] com.hairpower.back.AiChatApplication     : Started AiChatApplication in 0.147 seconds (process running for 0.76)
+2025-02-27T17:42:40.105+09:00  INFO 82599 --- [    Test worker] com.hairpower.back.AiChatApplication     : Starting AiChatApplication using Java 17.0.14 with PID 82599 (started by hyunjeanglee in /Users/hyunjeanglee/Desktop/1111/backServer/backServer)
+2025-02-27T17:42:40.105+09:00  INFO 82599 --- [    Test worker] com.hairpower.back.AiChatApplication     : No active profile set, falling back to 1 default profile: "default"
+2025-02-27T17:42:40.169+09:00  INFO 82599 --- [    Test worker] com.hairpower.back.AiChatApplication     : Started AiChatApplication in 0.17 seconds (process running for 0.701)
 ]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

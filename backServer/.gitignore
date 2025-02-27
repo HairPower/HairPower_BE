@@ -1,1 +1,2 @@
 src/main/java/com/hairpower/back/s3/config/S3Config.java
+.env
