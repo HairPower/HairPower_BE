@@ -44,6 +44,9 @@ dependencies {
     implementation 'io.github.cdimascio:java-dotenv:5.2.2'
 }
 
+tasks.named('bootJar') {
+    mainClass = 'com.hairpower.back.AiChatApplication'
+}
 
 tasks.named('test') {
     useJUnitPlatform()
