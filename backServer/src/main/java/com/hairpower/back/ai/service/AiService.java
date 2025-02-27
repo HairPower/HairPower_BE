@@ -3,84 +3,158 @@ package com.hairpower.back.ai.service;
 import com.hairpower.back.user.model.User;
 import com.hairpower.back.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
+import org.springframework.web.reactive.function.client.WebClient;
 
+import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AiService {
-    private final RestTemplate restTemplate;
-    private final UserRepository userRepository;
-    private static final String AI_SERVER_BASE_URL = "http://ai-server-url"; // AI 서버 주소
+    private final WebClient webClient;
+    private final UserRepository userRepository; // ✅ 유저 DB 업데이트를 위한 Repository 추가
 
-    // AI에 이미지 업로드 요청
-    public String uploadPhotoToAI(User user) {
-        String url = AI_SERVER_BASE_URL + "/upload-photo";
+    private static final String AI_SERVER_URL = "https://14d7-34-90-160-86.ngrok-free.app/";
+
+    // ✅ WebClient 요청 & 응답 로깅 필터 추가
+    private static ExchangeFilterFunction logRequest() {
+        return ExchangeFilterFunction.ofRequestProcessor(clientRequest -> {
+            log.info("📡 [AI 요청] {} {}", clientRequest.method(), clientRequest.url());
+            clientRequest.headers()
+                    .forEach((name, values) -> values.forEach(value -> log.info("📡 [Header] {}={}", name, value)));
+            return Mono.just(clientRequest);
+        });
+    }
+
+    private static ExchangeFilterFunction logResponse() {
+        return ExchangeFilterFunction.ofResponseProcessor(clientResponse -> {
+            log.info("📡 [AI 응답] HTTP Status={}", clientResponse.statusCode());
+            return Mono.just(clientResponse);
+        });
+    }
+
+    // ✅ AI 서버에 유저 정보 전송 (유저 생성 후 자동 실행)
+    public void uploadPhotoToAI(String userId, String gender, String imageUrl) {
+        Map<String, String> requestBody = Map.of(
+                "user_id", userId,
+                "gender", gender,
+                "image_url", imageUrl
+        );
+
+        log.info("📡 AI 서버 요청 JSON: {}", requestBody);
+
+        try {
+            // AI 서버에 요청
+            String response = webClient.post()
+                    .uri(AI_SERVER_URL + "/upload-photo")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(requestBody)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+
+            // 응답 로그
+            log.info("📡 AI 서버 응답: {}", response);
+
+            // AI 응답이 success일 경우, 후속 요청 진행
+            if (response.contains("success")) {
+                fetchUserFeaturesFromAI(userId);  // ✅ 성공 시 즉시 user_features 가져오기
+            } else {
+                log.warn("⚠️ AI 응답에서 success 메시지가 없음. 분석 중 오류 가능성 있음.");
+                saveDefaultUserFeatures(userId); // ✅ 오류 발생 시 기본값 저장
+            }
+
+        } catch (Exception e) {
+            log.error("❌ AI 서버 요청 중 오류 발생: {}", e.getMessage(), e);
+            saveDefaultUserFeatures(userId); // ✅ 오류 발생 시 기본값 저장
+        }
+    }
+
+    // ✅ AI 서버에서 사용자 특징 가져오기 (수정됨)
+    public void fetchUserFeaturesFromAI(String userId) {
+        String url = AI_SERVER_URL + "/select-story-image/" + userId;
+        log.info("📡 AI 서버에서 사용자 특징 요청: URL={}", url);
+
+        try {
+            Map<String, List<String>> response = webClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .bodyToMono(Map.class)
+                    .block();
+
+            log.info("📡 AI 서버 응답: {}", response);
+
+            // 응답에서 user_features 추출
+            List<String> userFeatures = response.getOrDefault("user_features", List.of());
+
+            if (userFeatures.isEmpty()) {
+                log.warn("⚠️ AI 서버 응답이 비어 있음. 기본값 저장.");
+                saveDefaultUserFeatures(userId);
+            } else {
+                updateUserFeatures(userId, userFeatures);
+            }
+
+        } catch (Exception e) {
+            log.error("❌ AI 서버에서 사용자 특징 요청 중 오류 발생: {}", e.getMessage(), e);
+            saveDefaultUserFeatures(userId); // ✅ 오류 발생 시 기본값 저장
+        }
+    }
+
+    // ✅ DB에 사용자 특징 업데이트
+    private void updateUserFeatures(String userId, List<String> userFeatures) {
+        log.info("📡 DB에 사용자 특징 업데이트: userId={}, userFeatures={}", userId, userFeatures);
+
+        Long id = Long.parseLong(userId);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 사용자 ID입니다."));
+
+        user.setUserFeatures(userFeatures);
+        userRepository.save(user);
+
+        log.info("✅ userFeatures가 성공적으로 업데이트되었습니다. userId={}", userId);
+    }
+
+    // ✅ AI 서버 오류 발생 시 기본값 저장
+    private void saveDefaultUserFeatures(String userId) {
+        List<String> defaultFeatures = Arrays.asList("세모형", "짧은 코", "긴 턱", "짧은 얼굴");
+
+        log.info("⚠️ AI 서버 오류로 기본 userFeatures 저장. 기본값: {}", defaultFeatures);
+        updateUserFeatures(userId, defaultFeatures);
+    }
+
+    // ✅ AI 챗봇 응답 받기 (수정됨)
+    public String chatbotRespond(Long userId, String message) {
+        String url = AI_SERVER_URL + "/chatbot/respond";
 
         Map<String, String> requestBody = Map.of(
-                "user_id", user.getUserId(),
-                "gender", user.getGender(),
-                "image_string", user.getImageUrl()
+                "user_id", String.valueOf(userId),
+                "message", message
         );
 
-        Map<String, String> response = restTemplate.postForObject(url, requestBody, Map.class);
-        return response != null ? response.get("message") : "Upload failed";
-    }
+        try {
+            Map<String, String> response = webClient.post()
+                    .uri(url)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(requestBody)
+                    .retrieve()
+                    .bodyToMono(Map.class)
+                    .block();
 
-    // AI에서 사용자 얼굴형 분석 결과 가져오기
-    public List<String> fetchUserFeaturesFromAI(String userId) {
-        String url = AI_SERVER_BASE_URL + "/select-story-image/" + userId;
-        Map<String, List<String>> response = restTemplate.getForObject(url, Map.class);
+            log.info("📡 AI 챗봇 응답: {}", response);
 
-        if (response != null && response.containsKey("user_features")) {
-            List<String> userFeatures = response.get("user_features");
-
-            Optional<User> userOptional = userRepository.findById(userId);
-            userOptional.ifPresent(user -> {
-                user.setUserFeatures(userFeatures);
-                userRepository.save(user);
-            });
-
-            return userFeatures;
-        }
-        return null;
-    }
-
-    // AI 분석 결과 가져오기 (DB 저장 없이 반환)
-    public String getStoryResult(String userId) {
-        String url = AI_SERVER_BASE_URL + "/get-story-result/" + userId;
-        Map<String, Object> response = restTemplate.getForObject(url, Map.class);
-
-        if (response == null || !response.containsKey("content")) {
-            return "AI 분석 결과를 가져올 수 없습니다.";
+            return response.getOrDefault("response", "응답 없음");
+        } catch (Exception e) {
+            log.error("❌ AI 챗봇 요청 중 오류 발생: {}", e.getMessage(), e);
+            return "AI 응답을 가져오는 데 실패했습니다.";
         }
 
-        Map<String, String> content = (Map<String, String>) response.get("content");
-        return content.get("text");
-    }
-
-    // AI 챗봇 응답 요청
-    public String chatbotRespond(String userId, String message) {
-        Optional<User> userOptional = userRepository.findById(userId);
-        if (userOptional.isEmpty()) {
-            return "사용자를 찾을 수 없습니다.";
-        }
-
-        User user = userOptional.get();
-
-        String url = AI_SERVER_BASE_URL + "/chatbot/respond";
-
-        Map<String, Object> requestBody = Map.of(
-                "user_id", userId,
-                "message", message,
-                "user_features", user.getUserFeatures()
-        );
-
-        Map<String, String> response = restTemplate.postForObject(url, requestBody, Map.class);
-        return response != null ? response.get("response") : "AI 응답을 가져올 수 없습니다.";
     }
 }
