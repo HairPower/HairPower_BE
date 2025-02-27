@@ -20,15 +20,15 @@ public class S3Config {
         // ✅ .env 파일 로드
         dotenv = Dotenv.configure().ignoreIfMissing().load();
         logger.info("🔍 직접 확인 - Dotenv AWS_ACCESS_KEY: {}", dotenv.get("AKIAUQ4L22I5OQSDABHG"));
-        logger.info("🔍 직접 확인 - Dotenv AWS_REGION: {}", dotenv.get("AWS_REGION"));
+        logger.info("🔍 직접 확인 - Dotenv AWS_REGION: {}", dotenv.get("ap-northeast-2"));
     }
 
     @Bean
     public AmazonS3 amazonS3() {
         // ✅ 환경 변수 로드
-        String accessKey = dotenv.get("AWS_ACCESS_KEY");
-        String secretKey = dotenv.get("AWS_SECRET_KEY");
-        String region = dotenv.get("AWS_REGION");
+        String accessKey = dotenv.get("AKIAWIJIUYTXLIFU5CVG");
+        String secretKey = dotenv.get("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");
+        String region = dotenv.get("ap-northeast-2");
 
         if (accessKey == null || secretKey == null || region == null) {
             logger.error("❌ AWS 환경 변수가 설정되지 않았습니다! 서버 실행 전에 환경 변수를 설정하세요.");
