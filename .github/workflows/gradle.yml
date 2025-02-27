@@ -50,7 +50,7 @@ jobs:
       - name: Deliver to AWS S3
         env:
           AWS_ACCESS_KEY_ID: AKIAUQ4L22I5BE4B2VHS
-          AWS_SECRET_ACCESS_KEY: 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
+          AWS_SECRET_ACCESS_KEY: 
 
         run: |
           aws s3 cp ./springboot-intro-build.zip s3://springboot-intro-build/ \
